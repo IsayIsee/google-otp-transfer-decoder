@@ -1,0 +1,32 @@
+{
+  "name": "google-otp-transfer-decoder",
+  "version": "1.0.0",
+  "description": "Decode Google Authenticator migration QR codes and extract TOTP secrets",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "serve": "serve dist -l 3000"
+  },
+  "keywords": [],
+  "author": "IsayIsee <1091921+Solin@user.noreply.gitee.com>",
+  "license": "MIT",
+  "repository": "https://github.com/IsayIsee/google-otp-transfer-decoder.git",
+  "dependencies": {
+    "vue": "^3.4.21",
+    "protobufjs": "^7.4.0",
+    "qr-scanner": "^1.4.2",
+    "jsqr": "^1.4.0",
+    "base32-encode": "^2.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "vite": "^5.1.6",
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  }
+}
