@@ -1,181 +1,238 @@
-# Google Authenticator 迁移数据解码器
+# Google Authenticator 迁移工具
 
-🔐 在浏览器本地解码 Google Authenticator 迁移二维码，零数据上传。
+🔐 **在浏览器中本地解码 Google Authenticator 迁移二维码，提取 TOTP 密钥。**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Vue 3](https://img.shields.io/badge/Vue-3.4.21-4FC08D?logo=vue.js)](https://vuejs.org/)
-[![Yarn](https://img.shields.io/badge/Yarn-Manager-2C8EBB?logo=yarn)](https://yarnpkg.com/)
+[![Vue 3](https://img.shields.io/badge/Vue-3.4.21-42b883)](https://cn.vuejs.org/)
+[![No Backend](https://img.shields.io/badge/后端 - 无-brightgreen)](#)
 
----
+> ⚡ **所有处理均在本地浏览器完成** — 数据不会发送到任何服务器。您的密钥始终保持私密。
 
-## 📖 项目简介
+- [Demo](https://isayisee.github.io/google-otp-transfer-decoder)
 
-**Google Authenticator 迁移数据解码器** 是一个纯前端工具，用于解码 Google Authenticator 的迁移二维码，提取您的 TOTP/HOTP 密钥。所有数据处理均在浏览器本地完成，**无需任何网络请求**，确保您的隐私安全。
+## ✨ 功能特性
 
-快速使用可以访问 https://isayisee.github.io/google-otp-transfer-decoder ，或者自行克隆代码部署
+- 📷 **扫描二维码** — 使用摄像头或上传图片扫描 Google Authenticator 迁移码
+- 🔗 **粘贴 OTP Auth 链接** — 直接输入 `otpauth-migration://` URI
+- 🔓 **解码密钥** — 从加密的迁移数据中提取 TOTP/HOTP 密钥
+- 📱 **显示二维码** — 为每个账户重新生成独立的二维码
+- 📤 **多种导出格式**：
+  - CSV（通用格式）
+  - JSON（结构化数据）
+  - OTP Auth URI（文本文件）
+  - KeePass（KeeOTP 插件格式）
+  - Bitwarden（JSON 导入）
+  - Aegis（Android 验证器）
 
----
+## 📖 使用教程
 
-## 🚀 快速开始
+### 步骤 1：从 Google Authenticator 导出
 
-### 前置要求
+1. 打开 Google Authenticator 应用
+2. 点击 **⋮**（菜单）→ **转移账号** → **导出账号**
+3. 选择要导出的账号
+4. 屏幕上会显示二维码
 
-- Node.js >= 18.0.0
-- Yarn >= 1.22.0
+### 步骤 2：解码迁移码
 
-### 安装依赖
+**方式 A：使用摄像头扫描**
+1. 点击 **📷 扫描 / 上传** 标签
+2. 点击 **打开摄像头**
+3. 将二维码对准扫描框内
+
+**方式 B：上传图片**
+1. 点击 **上传 / 拖放** 按钮
+2. 选择二维码截图
+3. 或直接拖拽图片到页面上
+
+**方式 C：粘贴链接**
+1. 点击 **🔗 输入 URL** 标签
+2. 粘贴 `otpauth-migration://offline?data=...` URI
+3. 点击 **解析**
+
+### 步骤 3：查看和导出密钥
+
+- 查看解码后的账户名称、发行方和密钥
+- 点击 QR 图标重新生成单个二维码
+- 点击 📋 复制密钥到剪贴板
+- 使用导出按钮以 preferred 格式导出
+
+## 🛠️ 技术栈
+
+- **框架**: [Vue 3](https://cn.vuejs.org/) (组合式 API，无需构建)
+- **QR 扫描**: [qr-scanner](https://github.com/nimiq/qr-scanner), [jsQR](https://github.com/cozmo/jsQR)
+- **QR 生成**: [qrcode](https://github.com/soldair/node-qrcode)
+- **Protocol Buffers**: [protobuf.js](https://github.com/protobufjs/protobuf.js)
+- **Base32 编码**: [base32-encode](https://github.com/LinusU/base32-encode)
+- **样式**: 自定义 CSS + CSS 变量
+- **字体**: [DM Sans](https://fonts.google.com/specimen/DM+Sans), [DM Mono](https://fonts.google.com/specimen/DM+Mono)
+
+## 🔐 隐私与安全
+
+**本工具将您的隐私放在首位：**
+
+- ✅ **无服务器通信** — 所有解码在浏览器中完成
+- ✅ **无数据存储** — 密钥永不保存或传输
+- ✅ **无追踪** — 无分析、无 Cookie、无指纹识别
+- ✅ **开源** — 代码透明可审计
+- ✅ **离线可用** — 初次加载后无需网络即可使用
+
+### 工作原理
+
+1. Google Authenticator 导出二维码包含 **Protocol Buffer** 编码的数据
+2. 应用使用 protobuf.js 解码 base64 载荷
+3. 密钥被提取并重新编码为 **Base32** 格式
+4. 所有操作在浏览器的 JavaScript 引擎中运行
+5. **数据不会离开您的设备**
+
+## 🌍 浏览器兼容性
+
+| 浏览器  | 版本 | 状态       |
+| ------- | ---- | ---------- |
+| Chrome  | 90+  | ✅ 完全支持 |
+| Firefox | 88+  | ✅ 完全支持 |
+| Safari  | 14+  | ✅ 完全支持 |
+| Edge    | 90+  | ✅ 完全支持 |
+| Opera   | 76+  | ✅ 完全支持 |
+
+**要求：**
+- ES6+ JavaScript 支持
+- `fetch` API
+- `canvas` API
+- 网络摄像头访问权限（用于扫描功能）
+
+## 📦 导出格式说明
+
+| 格式             | 用途           | 兼容应用               |
+| ---------------- | -------------- | ---------------------- |
+| **CSV**          | 通用电子表格   | Excel, Google Sheets   |
+| **JSON**         | 自定义集成     | 任意 JSON 解析器       |
+| **OTP Auth URI** | 手动导入       | Authy, FreeOTP         |
+| **KeePass**      | 密码管理器     | KeePass, KeePassXC     |
+| **Bitwarden**    | 密码管理器     | Bitwarden, Vaultwarden |
+| **Aegis**        | Android 验证器 | Aegis Authenticator    |
+
+## 🧪 开发
+
+### 本地开发
 
 ```bash
-# 安装依赖
-yarn install
-```
+# 克隆仓库
+git clone https://github.com/isayisee/google-otp-transfer-decoder.git
+cd google-otp-transfer-decoder
 
-### 开发模式
-
-```bash
-# 启动本地开发服务器
-yarn dev
-```
-
-浏览器访问 `http://localhost:5173`
-
-### 生产构建
-
-```bash
-# 构建生产版本
-yarn build
-
-# 预览构建结果
-yarn preview
-```
-
-### 静态服务
-
-```bash
-# 使用 serve 托管构建产物
+# 启动本地服务器
 yarn serve
+
+# 在浏览器中打开
+open http://localhost:3000
 ```
 
----
+### 进行修改
 
-## 📦 依赖说明
+由于这是单文件应用，你可以直接编辑 `index.html`：
 
-| 依赖          | 版本    | 用途                  |
-| ------------- | ------- | --------------------- |
-| vue           | ^3.4.21 | 前端框架              |
-| protobufjs    | ^7.4.0  | Protocol Buffers 解码 |
-| qr-scanner    | ^1.4.2  | 二维码扫描            |
-| jsqr          | ^1.4.0  | 备用二维码识别        |
-| base32-encode | ^2.0.0  | Base32 编码           |
+1. 在你喜欢的编辑器中编辑文件
+2. 刷新浏览器查看更改
+3. 无需构建步骤！
 
-### 开发依赖
+### 生产优化
 
-| 依赖               | 版本    | 用途          |
-| ------------------ | ------- | ------------- |
-| @vitejs/plugin-vue | ^5.0.4  | Vite Vue 插件 |
-| vite               | ^5.1.6  | 构建工具      |
-| serve              | ^14.2.1 | 静态文件服务  |
+生产部署时，可以考虑：
 
----
-
-## 📂 项目结构
-
-```
-otp-vault/
-├── index.html          # 主页面（单文件应用）
-├── package.json        # 项目配置与依赖
-├── vite.config.js      # Vite 构建配置
-├── README.md           # 项目文档
-└── dist/               # 构建输出目录（执行 build 后生成）
+```bash
+# 压缩 HTML
+npm install -g html-minifier
+html-minifier --collapse-whitespace --minify-css --minify-js index.html -o index.min.html
 ```
 
----
+## 📝 数据格式规范
 
-## 🔧 使用指南
+### Google Authenticator 迁移协议
 
-### 方式一：摄像头扫描
+迁移二维码包含：
 
-1. 点击「扫描摄像头」按钮
-2. 选择摄像头（如有多个）
-3. 将 Google Authenticator 迁移二维码对准扫描框
-4. 解码成功后自动显示结果
+```protobuf
+syntax = "proto3";
 
-### 方式二：图片上传
+message MigrationPayload {
+  enum Algorithm {
+    ALGO_INVALID = 0;
+    ALGO_SHA1 = 1;
+    ALGO_SHA256 = 2;
+    ALGO_SHA512 = 3;
+    ALGO_MD5 = 4;
+  }
 
-1. 点击「上传 / 拖放图片」按钮
-2. 选择包含迁移二维码的图片
-3. 或直接拖拽图片到页面
-4. 系统自动识别并解码
+  enum OtpType {
+    OTP_INVALID = 0;
+    OTP_HOTP = 1;
+    OTP_TOTP = 2;
+  }
 
-### 解码结果
+  message OtpParameters {
+    bytes secret = 1;
+    string name = 2;
+    string issuer = 3;
+    Algorithm algorithm = 4;
+    int32 digits = 5;
+    OtpType type = 6;
+    int64 counter = 7;
+  }
 
-解码后将显示：
-- 账户发行方（Issuer）
-- 账户名称（Name）
-- 类型（TOTP / HOTP）
-- 算法（Algorithm）
-- 位数（Digits）
-- 密钥（Secret）— 可一键复制
-
----
-
-## 🌐 多语言支持
-
-当前支持以下语言：
-
-| 语言    | 代码  |
-| ------- | ----- |
-| 中文    | zh-CN |
-| English | en    |
-
-语言选择通过顶部语言切换器实时切换，偏好设置会保存在本地存储。
-
----
-
-## 🔐 安全说明
-
-### 数据来源
-
-本工具解码的是 Google Authenticator 的**迁移二维码**，格式为：
-```
-otpauth-migration://offline?data=<base64_encoded_protobuf>
+  repeated OtpParameters otp_parameters = 1;
+  int32 version = 2;
+  int32 batch_size = 3;
+  int32 batch_index = 4;
+  int32 batch_id = 5;
+}
 ```
 
-### 解码流程
+### OTP Auth URI 格式
 
-1. 从二维码中提取 `otpauth-migration` URL
-2. 解析 `data` 参数的 Base64 编码
-3. 使用 Protocol Buffers 解码二进制数据
-4. 将原始密钥转换为 Base32 格式
-5. 在页面中展示结果
+生成的 URI 遵循 [Key Uri Format](https://github.com/google/google-authenticator/wiki/Key-Uri-Format)：
 
-### 重要提示
-
-- ⚠️ 请妥善保管提取的密钥
-- ⚠️ 不要将密钥分享给他人
-- ⚠️ 建议在安全环境中使用本工具
-- ⚠️ 使用后可清除浏览器历史记录
-
----
-
-## 📝 技术栈
-
-- **框架**: Vue 3 (Composition API)
-- **构建**: Vite 5
-- **语言**: HTML5 + CSS3 + JavaScript (ES Modules)
-- **样式**: 原生 CSS (CSS Variables)
-- **字体**: Google Fonts (Syne, DM Sans, DM Mono)
-
----
-
-## 📄 许可证
-
-MIT License — 详见 [LICENSE](LICENSE) 文件
-
----
+```
+otpauth://totp/Example:alice@google.com?secret=JBSWY3DPEHPK3PXP&issuer=Example&algorithm=SHA1&digits=6&period=30
+```
 
 ## ⚠️ 免责声明
 
-本工具仅供学习和研究用途。使用本工具提取的密钥请注意安全保管，因使用不当造成的任何损失，作者不承担任何责任。
+本工具仅用于 **合法的备份和迁移目的**。
 
----
+- 🔒 负责任且道德地使用
+- 🛡️ 仅解码您拥有或有权访问的账户
+- ⚠️ 切勿公开分享您的密钥
+- 📱 安全存储导出的数据
+
+作者不对软件的不当使用负责。
+
+## 📄 许可证
+
+**MIT 许可证** — 可自由使用、修改和分发。
+
+```
+Copyright (c) 2026
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+
+
+[⬆ 返回顶部](#google-authenticator-迁移工具)
