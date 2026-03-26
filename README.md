@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Vue 3](https://img.shields.io/badge/Vue-3.4.21-42b883)](https://cn.vuejs.org/)
-[![No Backend](https://img.shields.io/badge/后端 - 无-brightgreen)](#)
+[![No Backend](https://img.shields.io/badge/后端-无-brightgreen)](#)
 
 > ⚡ **所有处理均在本地浏览器完成** — 数据不会发送到任何服务器。您的密钥始终保持私密。
 
