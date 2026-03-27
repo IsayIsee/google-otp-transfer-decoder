@@ -12,7 +12,9 @@
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <style>
+    /* ── Theme tokens ─────────────────────────────────────────── */
     :root {
+      /* dark (default) */
       --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26;
       --border:#252535; --border-bright:#353550;
       --text:#e8e8f4; --text-sec:#7878a0; --text-dim:#45455f;
@@ -20,68 +22,103 @@
       --accent-glow:rgba(124,106,247,.2);
       --totp-bg:rgba(77,232,194,.08); --totp-color:#4de8c2;
       --hotp-bg:rgba(247,162,106,.10); --hotp-color:#f7a26a;
+      --grid-line:rgba(124,106,247,.03);
+      --shadow-card:none;
       --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif; --display:'Arial Black',sans-serif;
     }
+
+    /* ── Light theme overrides ────────────────────────────────── */
+    html[data-theme="light"] {
+      --bg:#f4f4fb; --surface:#ffffff; --surface2:#f0f0f8;
+      --border:#dddde8; --border-bright:#c8c8dc;
+      --text:#1a1a2e; --text-sec:#5a5a80; --text-dim:#9898b8;
+      --accent:#6455e0; --accent2:#1ab89a;
+      --accent-glow:rgba(100,85,224,.12);
+      --totp-bg:rgba(26,184,154,.1); --totp-color:#0f9e83;
+      --hotp-bg:rgba(220,120,60,.1); --hotp-color:#c0612b;
+      --grid-line:rgba(100,85,224,.04);
+      --shadow-card:0 1px 4px rgba(0,0,0,.07);
+    }
+
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(124,106,247,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(124,106,247,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .2s}
+    body::before{
+      content:'';position:fixed;inset:0;
+      background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),
+                       linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+      background-size:40px 40px;pointer-events:none;z-index:0
+    }
     .blob{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
     .blob-1{width:500px;height:500px;top:-150px;left:-100px;background:radial-gradient(circle,rgba(124,106,247,.12) 0%,transparent 70%)}
     .blob-2{width:400px;height:400px;bottom:-100px;right:-80px;background:radial-gradient(circle,rgba(77,232,194,.08) 0%,transparent 70%)}
+    html[data-theme="light"] .blob-1{background:radial-gradient(circle,rgba(100,85,224,.07) 0%,transparent 70%)}
+    html[data-theme="light"] .blob-2{background:radial-gradient(circle,rgba(26,184,154,.05) 0%,transparent 70%)}
     .app-wrapper{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:3rem 1.25rem 4rem}
 
-    /* lang bar */
-    .lang-bar{position:fixed;top:1rem;right:1.25rem;z-index:99;display:flex;gap:.35rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.3rem}
+    /* ── top bar: lang + theme ────────────────────────────────── */
+    .top-bar{position:fixed;top:1rem;right:1.25rem;z-index:99;display:flex;align-items:center;gap:.5rem}
+
+    /* lang switcher */
+    .lang-bar{display:flex;gap:.35rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.3rem;transition:background .25s,border-color .2s}
     .lang-btn{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;padding:.3rem .65rem;border-radius:7px;border:none;cursor:pointer;background:transparent;color:var(--text-sec);transition:all .15s}
     .lang-btn:hover{color:var(--text)}
     .lang-btn.active{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(124,106,247,.3)}
 
-    /* header */
+    /* theme toggle */
+    .theme-toggle{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text-sec);transition:all .2s;flex-shrink:0}
+    .theme-toggle:hover{color:var(--accent);border-color:rgba(124,106,247,.4);background:var(--accent-glow)}
+    .theme-toggle svg{transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+    .theme-toggle:active svg{transform:rotate(20deg) scale(.9)}
+
+    /* ── header ───────────────────────────────────────────────── */
     .header{margin-bottom:2.5rem}
     .header h1{font-family:var(--display);font-size:clamp(2rem,6vw,2.5rem);font-weight:800;line-height:1.05;color:var(--text);letter-spacing:-.02em}
     .header h1 span{color:var(--accent)}
     .header-sub{margin-top:.75rem;color:var(--text-sec);font-size:.9rem;max-width:440px;line-height:1.7}
     .privacy-pill{display:inline-flex;align-items:center;gap:.4rem;margin-top:1rem;padding:.35rem .9rem;border-radius:99px;border:1px solid rgba(77,232,194,.25);background:rgba(77,232,194,.05);font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent2)}
+    html[data-theme="light"] .privacy-pill{border-color:rgba(26,184,154,.3);background:rgba(26,184,154,.08)}
     .privacy-pill::before{content:'●';font-size:.5rem;animation:pulse-dot 2s ease-in-out infinite}
     @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
 
-    /* panel */
-    .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.25rem;transition:border-color .2s}
+    /* ── panel ────────────────────────────────────────────────── */
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.25rem;transition:border-color .2s,background .25s,box-shadow .2s;box-shadow:var(--shadow-card)}
     .panel-header{padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem}
     .panel-label{font-family:var(--mono);font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim)}
     .panel-body{padding:1.5rem}
 
-    /* input tabs */
+    /* ── input tabs ───────────────────────────────────────────── */
     .input-tabs{display:flex;gap:.5rem;margin-bottom:1.25rem;border-bottom:1px solid var(--border);padding-bottom:0}
     .tab-btn{font-family:var(--sans);font-size:.85rem;font-weight:500;padding:.6rem 1rem;border:none;background:transparent;color:var(--text-sec);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;border-radius:0}
     .tab-btn:hover{color:var(--text)}
     .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
 
-    /* url input */
+    /* ── url input ────────────────────────────────────────────── */
     .url-input-wrap{display:flex;gap:.75rem;align-items:flex-start;flex-direction:column}
-    .url-textarea{width:100%;min-height:90px;padding:.85rem 1rem;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:.8rem;resize:vertical;outline:none;transition:border-color .15s;line-height:1.6}
+    .url-textarea{width:100%;min-height:90px;padding:.85rem 1rem;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:.8rem;resize:vertical;outline:none;transition:border-color .15s,background .25s;line-height:1.6}
     .url-textarea::placeholder{color:var(--text-dim)}
     .url-textarea:focus{border-color:var(--accent)}
     .url-parse-btn{align-self:flex-end;display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.4rem;border-radius:10px;background:var(--accent);color:#fff;font-family:var(--sans);font-weight:600;font-size:.875rem;border:none;cursor:pointer;transition:all .18s}
     .url-parse-btn:hover{background:#8f7fff;box-shadow:0 0 20px rgba(124,106,247,.35);transform:translateY(-1px)}
+    html[data-theme="light"] .url-parse-btn:hover{background:#7566ee}
 
-    /* scan buttons */
+    /* ── scan buttons ─────────────────────────────────────────── */
     .action-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
     @media(max-width:400px){.action-row{grid-template-columns:1fr}}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:.6rem;padding:.85rem 1.25rem;border-radius:10px;font-family:var(--sans);font-weight:600;font-size:.9rem;cursor:pointer;border:none;transition:all .18s ease;white-space:nowrap}
     .btn-primary{background:var(--accent);color:#fff}
     .btn-primary:hover:not(:disabled){background:#8f7fff;box-shadow:0 0 24px rgba(124,106,247,.35);transform:translateY(-1px)}
     .btn-primary:disabled{opacity:.45;cursor:not-allowed}
+    html[data-theme="light"] .btn-primary:hover:not(:disabled){background:#7566ee;box-shadow:0 0 16px rgba(100,85,224,.3)}
     .file-btn{display:inline-flex;align-items:center;justify-content:center;gap:.6rem;padding:.85rem 1.25rem;border-radius:10px;font-family:var(--sans);font-weight:600;font-size:.9rem;cursor:pointer;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);transition:all .18s}
     .file-btn:hover{background:var(--border);border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
     .file-btn input{display:none}
     .spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* camera */
+    /* ── camera ───────────────────────────────────────────────── */
     .camera-section{margin-top:1.25rem}
     .cam-select-wrap{margin-bottom:.75rem}
-    .cam-select{width:100%;padding:.65rem 1rem;border-radius:8px;border:1px solid var(--border-bright);background:var(--surface2);color:var(--text);font-family:var(--sans);font-size:.85rem;outline:none;cursor:pointer}
+    .cam-select{width:100%;padding:.65rem 1rem;border-radius:8px;border:1px solid var(--border-bright);background:var(--surface2);color:var(--text);font-family:var(--sans);font-size:.85rem;outline:none;cursor:pointer;transition:background .25s}
     .cam-select:focus{border-color:var(--accent)}
     .video-frame{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;border:1px solid var(--border)}
     .video-frame video{width:100%;height:100%;object-fit:cover;display:block}
@@ -98,16 +135,18 @@
     @keyframes scan-sweep{0%{top:10%;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:90%;opacity:0}}
     .cam-hint{text-align:center;margin-top:.75rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase}
 
-    /* error */
+    /* ── error ────────────────────────────────────────────────── */
     .error-box{margin-top:1rem;padding:.85rem 1rem;border-radius:10px;background:rgba(247,106,106,.08);border:1px solid rgba(247,106,106,.25);color:#f79090;font-size:.87rem;display:flex;align-items:flex-start;gap:.6rem}
+    html[data-theme="light"] .error-box{background:rgba(200,50,50,.07);border-color:rgba(200,50,50,.2);color:#c03030}
     .error-icon{flex-shrink:0;margin-top:1px}
 
-    /* results */
+    /* ── results ──────────────────────────────────────────────── */
     .results-panel{animation:slide-up .35s cubic-bezier(.16,1,.3,1) both}
     @keyframes slide-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     .result-count{font-family:var(--mono);font-size:.72rem;color:var(--accent2);background:rgba(77,232,194,.1);border:1px solid rgba(77,232,194,.2);border-radius:6px;padding:.2rem .6rem;letter-spacing:.05em}
+    html[data-theme="light"] .result-count{background:rgba(26,184,154,.12);border-color:rgba(26,184,154,.25)}
     .otp-list{display:flex;flex-direction:column;gap:.75rem}
-    .otp-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.125rem 1.25rem;transition:border-color .18s;animation:slide-up .3s cubic-bezier(.16,1,.3,1) both}
+    .otp-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.125rem 1.25rem;transition:border-color .18s,background .25s;animation:slide-up .3s cubic-bezier(.16,1,.3,1) both;box-shadow:var(--shadow-card)}
     .otp-card:hover{border-color:var(--border-bright)}
     .otp-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.6rem;gap:.75rem}
     .otp-identity{min-width:0;flex:1}
@@ -117,23 +156,26 @@
     .type-badge{font-family:var(--mono);font-size:.68rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .65rem;border-radius:6px}
     .type-totp{background:var(--totp-bg);color:var(--totp-color);border:1px solid rgba(77,232,194,.2)}
     .type-hotp{background:var(--hotp-bg);color:var(--hotp-color);border:1px solid rgba(247,162,106,.2)}
+    html[data-theme="light"] .type-totp{border-color:rgba(26,184,154,.25)}
+    html[data-theme="light"] .type-hotp{border-color:rgba(192,97,43,.2)}
     .qr-toggle-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--surface);border:1px solid var(--border);border-radius:7px;cursor:pointer;color:var(--text-sec);transition:all .15s;font-size:.75rem;flex-shrink:0}
     .qr-toggle-btn:hover,.qr-toggle-btn.active{background:var(--accent-glow);color:var(--accent);border-color:rgba(124,106,247,.4)}
     .otp-meta{font-family:var(--mono);font-size:.72rem;color:var(--text-dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.75rem;display:flex;gap:1rem;flex-wrap:wrap}
     .otp-meta span{color:var(--text-sec)}
     .secret-row{display:flex;align-items:stretch;gap:.5rem}
-    .secret-box{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;font-family:var(--mono);font-size:.8rem;color:var(--text);word-break:break-all;line-height:1.5;letter-spacing:.03em;min-width:0}
+    .secret-box{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;font-family:var(--mono);font-size:.8rem;color:var(--text);word-break:break-all;line-height:1.5;letter-spacing:.03em;min-width:0;transition:background .25s}
     .copy-btn{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:36px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text-sec);transition:all .15s;font-size:.85rem}
     .copy-btn:hover{background:var(--border);color:var(--accent2);border-color:var(--accent2)}
     .copy-btn.copied{color:var(--accent2);border-color:var(--accent2);background:rgba(77,232,194,.08)}
 
-    /* qr display */
+    /* ── qr display ───────────────────────────────────────────── */
     .qr-display{margin-top:1rem;display:flex;justify-content:center;animation:slide-up .25s ease both}
     .qr-canvas-wrap{background:#fff;border-radius:12px;padding:12px;display:inline-block;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+    html[data-theme="light"] .qr-canvas-wrap{box-shadow:0 2px 16px rgba(0,0,0,.15)}
     .qr-canvas-wrap canvas{display:block}
     .qr-label{text-align:center;margin-top:.5rem;font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.08em}
 
-    /* export */
+    /* ── export ───────────────────────────────────────────────── */
     .export-section{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)}
     .export-title{font-family:var(--mono);font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.875rem;display:flex;align-items:center;gap:.5rem}
     .export-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.5rem}
@@ -141,20 +183,21 @@
     .export-btn:hover{background:var(--border);color:var(--text);border-color:var(--border-bright);transform:translateY(-1px)}
     .export-btn svg{flex-shrink:0}
 
-    /* raw */
+    /* ── raw ──────────────────────────────────────────────────── */
     .raw-section{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
     .raw-toggle{background:none;border:none;cursor:pointer;color:var(--text-sec);font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem;padding:0;transition:color .15s}
     .raw-toggle:hover{color:var(--text)}
     .toggle-arrow{transition:transform .2s;display:inline-block}
     .toggle-arrow.open{transform:rotate(90deg)}
-    .raw-data{margin-top:.75rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;font-family:var(--mono);font-size:.72rem;color:var(--text-sec);word-break:break-all;line-height:1.6}
+    .raw-data{margin-top:.75rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;font-family:var(--mono);font-size:.72rem;color:var(--text-sec);word-break:break-all;line-height:1.6;transition:background .25s}
 
-    /* footer */
+    /* ── footer ───────────────────────────────────────────────── */
     .footer{margin-top:3rem;text-align:center;font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;justify-content:center;gap:.75rem}
     .footer-dot{color:var(--border-bright)}
 
-    /* drag */
+    /* ── drag overlay ─────────────────────────────────────────── */
     .drop-hint{position:fixed;inset:0;z-index:100;background:rgba(10,10,15,.85);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);pointer-events:none}
+    html[data-theme="light"] .drop-hint{background:rgba(240,240,250,.88)}
     .drop-hint-inner{border:2px dashed var(--accent);border-radius:20px;padding:3rem 5rem;text-align:center}
     .drop-hint-icon{font-size:3rem;margin-bottom:1rem}
     .drop-hint-text{font-family:var(--display);font-size:1.5rem;font-weight:700;color:var(--accent)}
@@ -166,9 +209,25 @@
   <div class="blob blob-2"></div>
 
   <div id="app">
-    <!-- lang switcher -->
-    <div class="lang-bar">
-      <button v-for="l in langs" :key="l.code" class="lang-btn" :class="{active:locale===l.code}" @click="setLocale(l.code)">{{ l.label }}</button>
+    <!-- top bar: lang + theme toggle -->
+    <div class="top-bar">
+      <div class="lang-bar">
+        <button v-for="l in langs" :key="l.code" class="lang-btn" :class="{active:locale===l.code}" @click="setLocale(l.code)">{{ l.label }}</button>
+      </div>
+      <!-- theme toggle button -->
+      <button class="theme-toggle" @click="toggleTheme" :title="isDark ? t('themeLight') : t('themeDark')">
+        <!-- sun icon (shown in dark mode → click to go light) -->
+        <svg v-if="isDark" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <!-- moon icon (shown in light mode → click to go dark) -->
+        <svg v-else width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
     </div>
 
     <!-- drag overlay -->
@@ -371,69 +430,11 @@
 
   <script type="module">
     import base32Encode from "https://cdn.jsdelivr.net/npm/base32-encode@2.0.0/+esm";
+    // ── 语言包从独立文件加载 / i18n loaded from external file ──
+    import { messages, langs } from "./i18n.js";
+
     const { createApp, ref, nextTick, onBeforeUnmount } = Vue;
     const QRCode = window.QRCode;
-
-    // ── i18n ────────────────────────────────────────────────────
-    const messages = {
-      "zh-CN": {
-        title:"Google Authenticator 迁移工具",
-        subtitle:"解码 Google Authenticator 迁移二维码，提取 TOTP 密钥。",
-        privacy:"所有处理均在本地浏览器完成",
-        dropHere:"将二维码图片拖放到这里",
-        step1Label:"选择输入方式",
-        tabScan:"📷 扫描 / 上传",
-        tabUrl:"🔗 输入 URL",
-        startCamera:"打开摄像头",
-        stopCamera:"关闭摄像头",
-        uploadBtn:"上传 / 拖放图片",
-        camHint:"将二维码对准框内",
-        urlPlaceholder:"粘贴 otpauth-migration://offline?data=... 链接，支持同时输入多行",
-        parseBtn:"解析", errCamera:"摄像头访问被拒绝或不可用。",
-        errNoQR:"未能识别图片中的二维码，请确认图片清晰且未被裁剪。",
-        errInvalidUrl:"无效的迁移链接格式，请确认是 Google Authenticator 导出的二维码。",
-        step2Label:"解码结果", accountUnit:(n)=>`${n} 个账号`,
-        unknownIssuer:"未知发行方",
-        metaAlgo:"算法",
-        metaDigits:"位数",
-        metaCounter:"计数",
-        copyTip:"复制密钥",
-        copied:"已复制",
-        showQR:"显示二维码",
-        exportTitle:"导出",
-        rawData:"原始数据",
-        footerLicense:"MIT License",
-      },
-      "en": {
-        title:"Google Authenticator Migration Tool",
-        subtitle:"Decode Google Authenticator migration QR codes and extract TOTP secrets.",
-        privacy:"All processing happens locally in your browser",
-        dropHere:"Drop QR image here",
-        step1Label:"Input Source",
-        tabScan:"📷 Scan / Upload",
-        tabUrl:"🔗 Enter URL",
-        startCamera:"Open Camera",
-        stopCamera:"Close Camera",
-        uploadBtn:"Upload / Drop",
-        camHint:"Align QR code within the frame",
-        urlPlaceholder:"Paste otpauth-migration://offline?data=... URL here (supports multiple lines)",
-        parseBtn:"Parse",
-        errCamera:"Camera access denied or unavailable.",
-        errNoQR:"Could not detect a QR code. Please ensure the image is clear and not cropped.",
-        errInvalidUrl:"Invalid migration URL. Please make sure this is a Google Authenticator export QR.",
-        step2Label:"Decoded Entries", accountUnit:(n)=>`${n} account${n!==1?"s":""}`,
-        unknownIssuer:"Unknown Issuer",
-        metaAlgo:"Algo",
-        metaDigits:"Digits",
-        metaCounter:"Counter",
-        copyTip:"Copy secret",
-        copied:"Copied!",
-        showQR:"Show QR code",
-        exportTitle:"Export",
-        rawData:"Raw URI Data",
-        footerLicense:"MIT License",
-      },
-    };
 
     // ── Decode ────────────────────────────────────────────────
     function queryUnescape(str) { return decodeURIComponent(str.replace(/\+/g," ")); }
@@ -488,7 +489,6 @@
       params.forEach(p=>rows.push([p.name,p.issuer||"",p.secret,p.type==="OTP_TOTP"?"TOTP":"HOTP",p.algorithm,p.digits,p.counter||0]));
       return rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\r\n");
     }
-
     function buildJson(params) {
       return JSON.stringify(params.map(p=>({
         name:p.name, issuer:p.issuer||"", secret:p.secret,
@@ -498,13 +498,8 @@
         uri:toOtpauthUri(p),
       })),null,2);
     }
-
-    function buildOtpauthUris(params) {
-      return params.map(toOtpauthUri).join("\n");
-    }
-
+    function buildOtpauthUris(params) { return params.map(toOtpauthUri).join("\n"); }
     function buildKeepass(params) {
-      // KeePass KeeOTP plugin format (CSV: account name, secret key, type, digits, period/counter)
       const rows=[["Account","Key","OTPType","Digits","Period"]];
       params.forEach(p=>{
         const label=p.issuer?`${p.issuer} (${p.name})`:p.name;
@@ -512,59 +507,67 @@
       });
       return rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\r\n");
     }
-
     function buildBitwarden(params) {
-      // Bitwarden JSON import format
       const items = params.map((p,i)=>({
-        id: `otp-vault-${i}`,
-        organizationId: null,
-        folderId: null,
-        type: 1,
-        reprompt: 0,
-        name: p.issuer ? `${p.issuer} (${p.name})` : p.name,
-        notes: null,
-        favorite: false,
-        fields: [],
-        login: {
-          uris: [],
-          username: p.name,
-          password: null,
-          totp: toOtpauthUri(p),
-        },
-        collectionIds: null,
+        id:`otp-vault-${i}`, organizationId:null, folderId:null, type:1, reprompt:0,
+        name:p.issuer?`${p.issuer} (${p.name})`:p.name, notes:null, favorite:false, fields:[],
+        login:{uris:[],username:p.name,password:null,totp:toOtpauthUri(p)},
+        collectionIds:null,
       }));
-      return JSON.stringify({ encrypted:false, items },null,2);
+      return JSON.stringify({encrypted:false,items},null,2);
     }
-
     function buildAegis(params) {
-      // Aegis Authenticator JSON export format
       const entries = params.map((p,i)=>({
-        type: p.type==="OTP_TOTP"?"totp":"hotp",
-        uuid: `00000000-0000-0000-0000-${String(i).padStart(12,"0")}`,
-        name: p.name,
-        issuer: p.issuer||"",
-        note: "",
-        favorite: false,
-        icon: null,
-        info: {
-          secret: p.secret,
-          algo: p.algorithm,
-          digits: p.digits,
-          ...(p.type==="OTP_TOTP"?{period:30}:{counter:p.counter||0}),
-        },
+        type:p.type==="OTP_TOTP"?"totp":"hotp",
+        uuid:`00000000-0000-0000-0000-${String(i).padStart(12,"0")}`,
+        name:p.name, issuer:p.issuer||"", note:"", favorite:false, icon:null,
+        info:{secret:p.secret,algo:p.algorithm,digits:p.digits,
+          ...(p.type==="OTP_TOTP"?{period:30}:{counter:p.counter||0})},
       }));
-      return JSON.stringify({ version:1, header:{slots:null,params:null}, db:{version:2,entries} },null,2);
+      return JSON.stringify({version:1,header:{slots:null,params:null},db:{version:2,entries}},null,2);
     }
 
     // ── App ───────────────────────────────────────────────────
     createApp({
       setup() {
-        const STORAGE_KEY = "otp-vault-locale";
-        const langs = [{code:"zh-CN",label:"中文"},{code:"en",label:"EN"}];
-        const locale = ref(localStorage.getItem(STORAGE_KEY)||"zh-CN");
-        function setLocale(code) { locale.value=code; localStorage.setItem(STORAGE_KEY,code); document.documentElement.lang=code; }
-        function t(key,arg) { const m=messages[locale.value]||messages["zh-CN"]; const v=m[key]; return typeof v==="function"?v(arg):(v??key); }
+        // ── i18n ──
+        const locale = ref(localStorage.getItem("locale") || "zh-CN");
+        function setLocale(code) {
+          locale.value = code;
+          localStorage.setItem("locale", code);
+          document.documentElement.lang = code;
+        }
+        function t(key, ...args) {
+          const msg = messages[locale.value] || messages["zh-CN"];
+          const val = msg[key];
+          if (typeof val === "function") return val(...args);
+          return val ?? key;
+        }
 
+        // ── theme ──
+        // 优先读取用户手动选择，否则跟随系统
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+        const savedTheme = localStorage.getItem("theme");
+        const initTheme  = savedTheme ?? (systemDark.matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", initTheme);
+        const isDark = ref(initTheme === "dark");
+
+        // 当用户未手动设置时，监听系统主题变化并自动跟随
+        systemDark.addEventListener("change", (e) => {
+          if (localStorage.getItem("theme")) return; // 已手动选择，不跟随
+          const next = e.matches ? "dark" : "light";
+          isDark.value = e.matches;
+          document.documentElement.setAttribute("data-theme", next);
+        });
+
+        function toggleTheme() {
+          const next = isDark.value ? "light" : "dark";
+          isDark.value = !isDark.value;
+          document.documentElement.setAttribute("data-theme", next);
+          localStorage.setItem("theme", next); // 记录手动偏好，不再跟随系统
+        }
+
+        // ── state ──
         const videoRef      = ref(null);
         const result        = ref(null);
         const rawText       = ref("");
@@ -583,87 +586,61 @@
         const urlInput      = ref("");
         const qrOpen        = ref(-1);
         const qrCanvases    = ref({});
-        let qrScanner = null;
+        let qrScanner       = null;
 
         function setResult(text) {
-          try {
-            result.value = decodeOtpUri(text);
-            rawText.value = text;
-            count.value = result.value.otpParameters.length;
-            errorMessage.value = "";
-            qrOpen.value = -1;
-          } catch(e) {
-            errorMessage.value = e.message==="invalid_url"?t("errInvalidUrl"):e.message;
+          errorMessage.value = "";
+          const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+          const allItems = [];
+          const allRaw   = [];
+          for (const line of lines) {
+            try {
+              const obj = decodeOtpUri(line);
+              allItems.push(...(obj.otpParameters||[]));
+              allRaw.push(line);
+            } catch(e) {
+              errorMessage.value = t(e.message==="invalid_url"?"errInvalidUrl":"errNoQR");
+            }
+          }
+          if (allItems.length) {
+            result.value = { otpParameters: allItems };
+            count.value  = allItems.length;
+            rawText.value = allRaw.join("\n");
           }
         }
 
-        // URL parse: supports multiple lines
         function parseUrl() {
           errorMessage.value = "";
-          const lines = urlInput.value.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.startsWith("otpauth-migration://"));
-          if (!lines.length) { errorMessage.value = t("errInvalidUrl"); return; }
-          if (lines.length===1) { setResult(lines[0]); return; }
-          // merge multiple batches
-          try {
-            let merged = null;
-            for (const line of lines) {
-              const decoded = decodeOtpUri(line);
-              if (!merged) merged = decoded;
-              else merged.otpParameters.push(...decoded.otpParameters);
-            }
-            result.value = merged;
-            rawText.value = lines.join("\n");
-            count.value = merged.otpParameters.length;
-            errorMessage.value = "";
-            qrOpen.value = -1;
-          } catch(e) {
-            errorMessage.value = e.message==="invalid_url"?t("errInvalidUrl"):e.message;
-          }
+          const text = urlInput.value.trim();
+          if (!text) return;
+          setResult(text);
         }
 
-        // QR display
         async function toggleQr(idx, item) {
-          if (qrOpen.value===idx) { qrOpen.value=-1; return; }
+          if (qrOpen.value === idx) { qrOpen.value = -1; return; }
           qrOpen.value = idx;
           await nextTick();
           const canvas = qrCanvases.value[idx];
-          if (canvas) {
-            try {
-              await QRCode.toCanvas(canvas, toOtpauthUri(item), {
-                width:200, margin:1,
-                color:{dark:"#000000",light:"#ffffff"},
-              });
-            } catch(e) { console.warn("QR gen failed",e); }
-          }
+          if (canvas) await QRCode.toCanvas(canvas, toOtpauthUri(item), { width:200, margin:1 });
         }
 
-        // Export
-        function exportFile(format) {
-          if (!result.value) return;
-          const params = result.value.otpParameters;
+        function exportFile(fmt) {
+          const params = result.value?.otpParameters || [];
           let content, filename, mime;
-          switch(format) {
-            case "csv":
-              content=buildCsv(params); filename="otp-export.csv"; mime="text/csv"; break;
-            case "json":
-              content=buildJson(params); filename="otp-export.json"; mime="application/json"; break;
-            case "otpauth":
-              content=buildOtpauthUris(params); filename="otp-uris.txt"; mime="text/plain"; break;
-            case "keepass":
-              content=buildKeepass(params); filename="otp-keepass.csv"; mime="text/csv"; break;
-            case "bitwarden":
-              content=buildBitwarden(params); filename="bitwarden-import.json"; mime="application/json"; break;
-            case "aegis":
-              content=buildAegis(params); filename="aegis-backup.json"; mime="application/json"; break;
-          }
-          const blob = new Blob([content],{type:mime+";charset=utf-8"});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
+          if (fmt==="csv")       { content=buildCsv(params);          filename="otp_export.csv";      mime="text/csv"; }
+          else if (fmt==="json") { content=buildJson(params);         filename="otp_export.json";     mime="application/json"; }
+          else if (fmt==="otpauth") { content=buildOtpauthUris(params); filename="otp_uris.txt";      mime="text/plain"; }
+          else if (fmt==="keepass")  { content=buildKeepass(params);   filename="otp_keepass.csv";    mime="text/csv"; }
+          else if (fmt==="bitwarden") { content=buildBitwarden(params); filename="otp_bitwarden.json"; mime="application/json"; }
+          else if (fmt==="aegis")    { content=buildAegis(params);     filename="otp_aegis.json";     mime="application/json"; }
+          const blob = new Blob([content],{type:mime});
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement("a");
           a.href=url; a.download=filename; a.click();
           setTimeout(()=>URL.revokeObjectURL(url),1000);
         }
 
-        // Camera
+        // ── Camera ──
         async function toggleCamera() {
           if (isScanning.value) {
             isStopping.value=true;
@@ -732,11 +709,6 @@
           errorMessage.value=t("errNoQR");
         }
 
-        async function handleDrop(e) {
-          const file=e.dataTransfer.files[0];
-          if(file?.type.startsWith("image/"))await processFile(file);
-        }
-
         function copySecret(secret,idx) {
           navigator.clipboard.writeText(secret).then(()=>{
             copiedIdx.value=idx; setTimeout(()=>{copiedIdx.value=-1;},1800);
@@ -762,14 +734,15 @@
         });
 
         return {
-          locale,langs,setLocale,t,
-          videoRef,result,rawText,count,errorMessage,
-          isScanning,isStarting,isStopping,cameras,currentCamId,
-          isDragging,isDragOverPanel,copiedIdx,showRaw,
-          activeTab,urlInput,parseUrl,
-          qrOpen,qrCanvases,toggleQr,
-          exportFile,toOtpauthUri,
-          toggleCamera,switchCamera,handleFileUpload,handleDrop,copySecret,
+          locale, langs, setLocale, t,
+          isDark, toggleTheme,
+          videoRef, result, rawText, count, errorMessage,
+          isScanning, isStarting, isStopping, cameras, currentCamId,
+          isDragging, isDragOverPanel, copiedIdx, showRaw,
+          activeTab, urlInput, parseUrl,
+          qrOpen, qrCanvases, toggleQr,
+          exportFile, toOtpauthUri,
+          toggleCamera, switchCamera, handleFileUpload, copySecret,
         };
       }
     }).mount("#app");
